@@ -1,19 +1,17 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 09 Apr, 2023 | 15:41:34
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
 #include <set>
  
 using namespace std;
  
 typedef long long ll;
 typedef long double ld;
- 
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
 void __print(int x) {cerr << x;}
@@ -43,66 +41,47 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
+struct Cmp{
+    bool operator()(const pair<int, int> &p1, const pair<int, int> &p2) const {
+        if(p1.first==p2.first) return p1.second<p2.second;
+        return p1.first>p2.second;
+    }
+};
+
+using st = set<pair<int, int>, Cmp>;
 
 
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
+const int N = 1e5+10;
+vector<ll> a(N, 0);
 vector<int> g[N];
-vector<bool> vis(N, 0);
+// importance of a subtree
+vector<ll> imp(N, 0);
+// size of a subtree
+vector<int> sz(N, 0), par(N, 0);
+st son[N];
 
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
+void dfs(int v, int p) {
+    par[v] = p;
+    imp[v] = a[v];
+    sz[v] = 1;
+    for(int u: g[v]) {
+        if(u==p) continue;
+        dfs(u, v);
+        sz[v] += sz[u];
+        imp[v] += imp[u];
     }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
+    for(int u: g[v]) {
+        if(u==p) continue;
+        son[v].emplace(sz[u], u);
     }
 }
-
-
  
 void solve() {
-
     int n, m;
     cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    for(int i=0;i<n;i++) cin >> a[i];
 
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
-    }
-
-    for(int i=0;i<m;i++) {
+    for(int i=0;i<n-1;i++) {
         int u, v;
         cin >> u >> v;
         u--, v--;
@@ -110,12 +89,34 @@ void solve() {
         g[v].push_back(u);
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+    dfs(0, -1);
+   
+
+
+    while(m--) {
+        int t, x;
+        cin >> t >> x;
+        x--;
+        if(t==1) {
+            cout << imp[x] << "\n";
+        } else {
+            if(son[x].empty()) continue;
+            auto it = son[x].begin();
+            auto [sizeChild, child] = *it; 
+            son[x].erase(it);
+            son[par[x]].erase({sz[x], x});
+            sz[x] -= sz[child];
+            imp[x] -= imp[child];
+            sz[child] += sz[x];
+            imp[child] += imp[x];
+            par[child] = par[x];
+            par[x] = child; 
+            son[child].emplace(sz[x], x);
+            son[par[child]].emplace(sz[child], child);
+        }
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+
 
 }
  
@@ -124,7 +125,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
+    // cin >> t;
     while (t--) {
         solve();
     }
