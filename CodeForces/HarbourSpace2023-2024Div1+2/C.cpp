@@ -1,0 +1,82 @@
+/**
+*   author: lazyhash(yashkundu)
+*   created: 21 Sep, 2023 | 10:20:48
+**/
+#include <iostream>
+#include <vector>
+#include <random>
+#include <chrono>
+#include <assert.h>
+ 
+using namespace std;
+ 
+typedef long long ll;
+typedef long double ld;
+ 
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
+ 
+void solve() {
+    int x;
+    cin >> x;
+    int msbPos = 31-__builtin_clz(x);
+    vector<int> ans;
+    for(int i=0;i<msbPos;i++) {
+        if((x>>i)&1) ans.push_back(1<<i);
+    } 
+    for(int i=msbPos-1;i>=0;i--) ans.push_back(1<<i);
+    cout << ans.size()+1 << "\n";
+    cout << x << " ";
+    for(int del: ans) {
+        x -= del;
+        cout << x << " ";
+    }
+    assert(x==1);
+}
+ 
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+ 
+    int t = 1;
+    cin >> t;
+    while (t--) {
+        solve();
+    }
+    return 0;
+}
+/* stuff you should look for
+* logic OVER intuition
+* int overflow, array bounds
+* special cases (n=1?)
+* do smth instead of nothing and stay organized
+* WRITE STUFF DOWN
+* DON'T GET STUCK ON ONE APPROACH
+* - BenQ
+*/
