@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 23 Jan, 2024 | 10:11:30
 **/
 #include <iostream>
 #include <vector>
@@ -61,39 +61,89 @@ template<int MOD> struct mint {
 };
 
 using mi=mint<998244353>;
+
+
+
 const int N = 2e5+10;
+int a[N], nxt[N], col[N];
+vector<int> pos[N];
+int n;
 
-mi fact[N];
 
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
+
+bool isSegmentGood(int l, int r) {
+    if((r-l)&1) return false;
+    fill(col+l, col+r, 0);
+    int maxInd = l;
+    for(int i=l;i<r;i++) {
+        if(col[i]) continue;
+        col[i] = 1;
+        int nxtInd = nxt[i];
+        if(nxtInd>=r) return false;
+        if(nxtInd<=maxInd) return false;
+        maxInd = nxtInd;
+        col[nxtInd] = 2;
     }
+    return true;
 }
+
+
+// return number of complete segments if all of them are good
+int completeSegments() {
+    int r = 0;
+    int l = 0;
+    int cnt = 0;
+    for(int i=0;i<n;i++) {
+        if(i==r+1) {
+            // check the previous one
+            if(!isSegmentGood(l, r+1)) return 0;
+            cnt++;
+            l = i;
+            r = i;
+        }
+        int nxtInd = nxt[i];
+        if(nxtInd!=n) r = max(r, nxtInd);
+    }
+    if(!isSegmentGood(l, n)) return 0;
+    cnt++;
+    return cnt;
+}
+
+
  
 void solve() {
-    string s;
-    cin >> s;
+    cin >> n;
 
-    int minOps = 0;
-    mi totSeq(1);
+    fill(nxt, nxt+n, n);
 
-    int n = s.size();
-    int len = 0;
+    int uniqEl = 0;
 
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    for(int i=0;i<n;i++) {
+        cin >> a[i];
+        if(!pos[a[i]].empty()) nxt[pos[a[i]].back()] = i;
+        else uniqEl++;
+        pos[a[i]].push_back(i);
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
 
+
+    mi totWays = pow(mi(2), uniqEl);
+    int goodSegments = completeSegments();
+    if(goodSegments) {
+        totWays -= pow(mi(2), goodSegments);
+    }
+
+    totWays /= 2;
+
+    cout << totWays.v << "\n";
+
+
+
+
+
+
+
+
+    for(int i=0;i<n;i++) pos[a[i]].clear();
 
 }
  
@@ -102,8 +152,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
-    precalc();
+    // cin >> t;
     while (t--) {
         solve();
     }

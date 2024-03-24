@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 15 Feb, 2024 | 22:10:03
 **/
 #include <iostream>
 #include <vector>
@@ -15,23 +15,30 @@ typedef long double ld;
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
  
 void solve() {
-    int n;
-    cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
-    }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+    int k, x, a;
+    cin >> k >> x >> a;
+    int totLoss = 0;
+
+    for(int i=0;i<x;i++) {
+        // curGain should be > totLoss
+        // if I can't this if not good input
+        // maxGain -> y*(k-1)
+        int curY = (totLoss+k-1)/(k-1);
+        if(curY>a) {
+            cout << "NO\n";
+            return;
         }
+        totLoss += curY;
+        a -= curY;
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    // totGain > totLoss
+    if((totLoss+k-1)/(k-1)<=a) {
+        cout << "YES\n";
+    } else {
+        cout << "NO\n";
+    }
+
 }
  
 signed main() {

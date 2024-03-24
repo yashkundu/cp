@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 23 Feb, 2024 | 20:44:45
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,43 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+const int N = 3e5+10;
+ll c[N] = {0};
+ll pre[N] = {0};
+int ones[N] = {0};
  
 void solve() {
-    int n;
-    cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+    int n, q;
+    cin >> n >> q;
+
+
+
+    for(int i=0;i<n;i++) cin >> c[i];
+    for(int i=1;i<=n;i++) {
+        pre[i] = pre[i-1] + c[i-1];
+        ones[i] = ones[i-1];
+        if(c[i-1]==1) ones[i]++;
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+
+    while(q--) {
+        int l, r;
+        cin >> l >> r;
+        if(l==r) {
+            cout << "NO\n";
+            continue;
+        }
+        ll sum = pre[r] - pre[l-1];
+        int numOnes = ones[r] - ones[l-1];
+        if(2*numOnes + (r-l+1-numOnes)>sum) {
+            cout << "NO\n";
+        } else {
+            cout << "YES\n";
         }
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+
+
 }
  
 signed main() {

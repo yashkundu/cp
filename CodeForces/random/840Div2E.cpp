@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 29 Feb, 2024 | 09:43:18
 **/
 #include <iostream>
 #include <vector>
@@ -14,24 +14,27 @@ typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
  
+const int N = 2e5+10;
+// dp[i] - the minimum number of nodes needed to create an i-reachable graph
+int dp[N] = {0};
+const int inf = 1e9;
+
 void solve() {
-    int n;
-    cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
-    }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+    int p;
+    cin >> p;
+
+    for(int i=1;i<=p;i++) dp[i] = inf;
+
+    // iterating over number of bidirectional node pairs
+    for(int i=1;i<=p;i++) {
+        // iterate on last cycle length
+        for(int j=2;j*(j-1)/2<=i;j++) {
+            dp[i] = min(dp[i], dp[i-j*(j-1)/2]+j);
         }
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    cout << dp[p] << " " << (1LL*dp[p]*(dp[p]-1)/2 - p) << "\n";
+
 }
  
 signed main() {
@@ -39,7 +42,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
+    // cin >> t;
     while (t--) {
         solve();
     }

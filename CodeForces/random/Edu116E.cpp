@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 25 Sep, 2023 | 11:11:58
+*   created: 19 Mar, 2024 | 21:51:16
 **/
 #include <iostream>
 #include <vector>
@@ -14,6 +14,33 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
 
 template<int MOD> struct mint {
     static const int mod = MOD;
@@ -60,40 +87,61 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
+const int mod = 998244353;
+using mi=mint<mod>;
  
+const int N = 501;
+mi dp[N][N];
+mi fact[N], invFact[N];
+// dp[x][y] -  no of ways in which x heroes are alive, and we have reduced y health points
+
+
+
+void precalc() {
+    fact[0] = 1;
+    for(int i=1;i<N;i++) fact[i] = fact[i-1]*i;
+
+    invFact[N-1] = inv(fact[N-1]);
+    for(int i=N-2;i>=0;i--) invFact[i] = invFact[i+1]*(i+1);
+}
+
+mi nCr(int n, int r) {
+    if(n<r) return 0;
+    return fact[n]*invFact[n-r]*invFact[r];
+}
+
 void solve() {
-    int n;
-    cin >> n;
+    int n, x;
+    cin >> n >> x;
 
-    vector<int> a(n);
-    for(int &x: a) cin >> x;
+    for(int i=0;i<=n;i++) for(int j=0;j<=x;j++) dp[i][j] = 0;
+    dp[n][0] = 1;
 
-
-    mi ans(0);
-
-    for(int j=0;j<30;j++) {
-        int bitCnt = 0;
-        int oddBitCnt = 0, evenBitCnt = 0;
-        ll oddBitLenSum = 0, evenBitLenSum = 0;
-        evenBitCnt++;
-        for(int i=0;i<n;i++) {
-            if((1<<j)&a[i]) {
-                bitCnt++;
-            }
-            if(bitCnt&1) {
-                ans += (mi(evenBitCnt)*mi(i+1) - mi(evenBitLenSum))*mi(1<<j);
-                oddBitCnt++;
-                oddBitLenSum += i+1;
-            } else {
-                ans += (mi(oddBitCnt)*mi(i+1) - mi(oddBitLenSum))*mi(1<<j);
-                evenBitCnt++;
-                evenBitLenSum += i+1;
+    for(int i=n;i>1;i--) {
+        // i heroes are alive
+        for(int j=0;j<x;j++) {
+            // have reduced health points by j untill now
+            // iterating over the number of heroes that have to be killed in the current round
+            int l = j, r = min(x, j+i-1);
+            mi f = 1;
+            for(int k=0;k<=i;k++) {
+                // can't kill all the heroes except one i.e k!=i-1
+                // if(k==i-1) continue;
+                // killed heroes range health range: [j+1, j+i-1]
+                
+                // dp[i][j]*(r-l)^k*iCk
+                dp[i-k][r] += dp[i][j]*f*nCr(i, k);
+                f *= (r-l);
             }
         }
     }
 
-    cout << ans << "\n";
+    mi ans = 0;
+    for(int i=0;i<=x;i++) ans += dp[0][i];
+
+    cout << ans.v << "\n";
+
+
 
     
 }
@@ -103,6 +151,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
+    precalc();
     // cin >> t;
     while (t--) {
         solve();

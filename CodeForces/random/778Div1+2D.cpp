@@ -1,12 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 17 Mar, 2024 | 12:28:11
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <assert.h>
  
 using namespace std;
  
@@ -60,39 +59,44 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
+const int mod = 998244353;
+using mi=mint<mod>;
+
 const int N = 2e5+10;
+vector<pair<int, pair<int, int>>> g[N];
 
-mi fact[N];
+int n;
 
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
+
+// returns (curVal, curSum) of a vertex
+pair<mint, mint> dfs(int v, int p) {
+    mint curVal = 1;
+    mint curSum = 1;
+    for(auto e : g[v]) {
+        int u = e.first, x = e.second.first, y = e.second.second;
+        if(u==p) continue;
+        auto p = dfs(u, p);
+        mint childVal = p.first, childSum = p.second;
     }
+    return make_pair(curVal, curSum);
 }
+
  
 void solve() {
-    string s;
-    cin >> s;
+    cin >> n;
+    for(int i=0;i<n;i++) g[i].clear();
 
-    int minOps = 0;
-    mi totSeq(1);
 
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    for(int i=0;i<n-1;i++) {
+        int i, j, x, y;
+        cin >> i >> j >> x >> y;
+        i--, j--;
+        g[i].push_back({j, {x, y}});
+        g[j].push_back({i, {y, x}});
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
+
+
+
 
 
 }
@@ -103,7 +107,6 @@ signed main() {
  
     int t = 1;
     cin >> t;
-    precalc();
     while (t--) {
         solve();
     }

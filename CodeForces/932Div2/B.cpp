@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 05 Mar, 2024 | 20:23:20
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,48 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+const int N = 1e5+10;
+int a[N], lft[N], rght[N];
+bool vis[N];
  
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
+    
+    fill(vis, vis+n, 0);
     for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+        cin >> a[i];
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+
+    int mex = 0;
+    for(int i=0;i<n;i++) {
+        vis[a[i]] = 1;
+        while(mex<n && vis[mex]) mex++;
+        lft[i] = mex;
+    }
+
+    fill(vis, vis+n, 0);
+
+    mex = 0;
+    for(int i=n-1;i>=0;i--) {
+        vis[a[i]] = 1;
+        while(mex<n && vis[mex]) mex++;
+        rght[i] = mex;
+    }
+
+    for(int i=0;i<n-1;i++) {
+        if(lft[i]==rght[i+1]) {
+            cout << 2 << "\n";
+            cout << 1 << " " << i+1 << "\n";
+            cout << i+2 << " " << n << "\n";
+            return;
         }
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    cout << "-1\n";
+
+
 }
  
 signed main() {

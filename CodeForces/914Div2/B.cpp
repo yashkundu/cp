@@ -1,11 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 17 Dec, 2023 | 12:20:10
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <algorithm>
  
 using namespace std;
  
@@ -17,21 +18,35 @@ mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
+    vector<pair<int, int>> a(n);
     for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+        cin >> a[i].first;
+        a[i].second = i;
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
+
+    vector<int> ans(n);
+    vector<bool> isGood(n, 0);
+
+    sort(a.begin(), a.end());
+
+    ll sum = 0;
+    for(int i=0;i<n-1;i++) {
+        sum += a[i].first;
+        if(sum>=a[i+1].first) isGood[i] = 1;
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    int lastBad = n-1;
+    for(int i=n-1;i>=0;i--) {
+        if(!isGood[i]) lastBad = i;
+        ans[a[i].second] = lastBad+1;
+    }
+
+    for(int &x: ans) cout << x-1 << " ";
+    cout << "\n";
+
+
+
+
 }
  
 signed main() {

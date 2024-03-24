@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 07 Mar, 2024 | 11:02:36
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,43 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+
+int query(int w) {
+    cout << "? " << w << endl;
+    int h;
+    cin >> h;
+    return h;
+}
+
+
  
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+
+    int l = 1, r = 6e6;
+    while(l<r) {
+        int mid = (l+r)/2;
+        int h = query(mid);
+        if(h==1) r = mid;
+        else l = mid + 1;
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
+
+    int s = l;
+
+    int ans = s;
+    for(int h=2;h<=n;h++) {
+        // [s-h+1, s]
+        // possible good area s/h*h
+        // w = s/h
+        int x = query(s/h);
+        if(x==h) ans = min(ans, s/h*h);
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    cout << "! " << ans << endl;
+
+
 }
  
 signed main() {
@@ -39,7 +57,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
+    // cin >> t;
     while (t--) {
         solve();
     }

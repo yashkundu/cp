@@ -1,11 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 30 Dec, 2023 | 22:07:48
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <map>
 #include <assert.h>
  
 using namespace std;
@@ -13,7 +14,34 @@ using namespace std;
 typedef long long ll;
 typedef long double ld;
  
-mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
 
 template<int MOD> struct mint {
     static const int mod = MOD;
@@ -60,40 +88,82 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
+const int mod = 998244353;
 const int N = 2e5+10;
 
-mi fact[N];
+int rnds[N];
+int c[2*N];
 
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
+using mi=mint<mod>;
+
+
+ll gen() {
+    ll x = 0;
+    while(x==0) x = rng();
+    return x;
 }
+
+
+int calcGoodEls(int l, int r) {
+    // (l, r)
+    int bad = 0;
+    map<ll, int> mp;
+    ll pXor = 0;
+    for(int i=l;i<=r;i++) {
+        pXor ^= rnds[c[i]];
+        if(!mp.count(pXor)) {
+            mp[pXor] = i;
+        }
+    }
+
+    for(int i=r;i>=l;) {
+        if(mp[pXor]!=i) {
+            bad += i-mp[pXor];
+            i = mp[pXor];
+        } else {
+            pXor ^= rnds[c[i]];
+            i--;
+        }
+    }
+
+    return r-l+1-bad;
+}
+
+
+
  
 void solve() {
-    string s;
-    cin >> s;
+    int n;
+    cin >> n;
 
-    int minOps = 0;
-    mi totSeq(1);
+    for(int i=0;i<2*n;i++) cin >> c[i];
 
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    for(int i=1;i<=n;i++) {
+        rnds[i] = gen();
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
 
+
+    ll pXor = 0;
+    vector<pair<int, int>> grps;
+    int prev = -1;
+    for(int i=0;i<2*n;i++) {
+        pXor ^= rnds[c[i]];
+        if(pXor==0) {
+            grps.emplace_back(prev+1, i);
+            prev = i;
+        }
+    }
+
+    int size = grps.size();
+
+
+    mi ans = 1;
+    for(auto [l, r]: grps) {
+        int cnt = calcGoodEls(l, r);
+        ans *= cnt;
+    }
+
+    cout << size << " " << ans.v << "\n";
 
 }
  
@@ -103,7 +173,6 @@ signed main() {
  
     int t = 1;
     cin >> t;
-    precalc();
     while (t--) {
         solve();
     }

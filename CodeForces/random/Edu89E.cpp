@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 21 Feb, 2024 | 16:38:05
 **/
 #include <iostream>
 #include <vector>
@@ -60,40 +60,65 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
-
-mi fact[N];
-
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
-}
+const int mod = 998244353;
+using mi=mint<mod>;
  
 void solve() {
-    string s;
-    cin >> s;
+    int n, m;
+    cin >> n >> m;
+    vector<int> a(n), b(m);
+    for(int i=0;i<n;i++) cin >> a[i];
+    for(int i=0;i<m;i++) cin >> b[i];
 
-    int minOps = 0;
-    mi totSeq(1);
+    a = vector<int>(a.rbegin(), a.rend());
+    b = vector<int>(b.rbegin(), b.rend());
 
-    int n = s.size();
-    int len = 0;
+    a.push_back(0);
 
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+
+    vector<int> fPos(m, -1);
+    vector<int> fMin(m, -1);
+
+
+
+    int ptr = 0;
+
+    for(int i=0;i<m;i++) {
+        while(ptr<a.size()) {
+            if(a[ptr]<b[i]) {
+                cout << "0\n";
+                return;
+            }
+            if(a[ptr]==b[i]) {
+                fPos[i] = ptr;
+                ptr++;
+                break;
+            }
+            ptr++;
+        }
+        if(fPos[i]==-1) {
+            cout << "0\n";
+            return;
+        }
+    } 
+
+    ptr = 0;
+    for(int i=0;i<m;i++) {
+        // b[i]
+        while(ptr<=fPos[i]) ptr++;
+        while(ptr<n && a[ptr]>=b[i]) ptr++;
+        fMin[i] = ptr; 
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
 
+    if(fMin[m-1]!=n) {
+        cout << "0\n";
+        return;
+    }
+
+    mi ans = 1;
+    for(int i=0;i<m-1;i++) ans *= (fMin[i]-fPos[i]);
+
+    cout << ans.v << "\n";
 
 }
  
@@ -102,8 +127,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
-    precalc();
+    // cin >> t;
     while (t--) {
         solve();
     }

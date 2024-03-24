@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 18 Mar, 2024 | 22:16:23
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,39 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+const int N =251;
+int c[2*N][2*N];
  
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
-    }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+
+    for(int i=0;i<2*n;i++) {
+        for(int j=0;j<2*n;j++) {
+            cin >> c[i][j];
         }
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    ll ans = 0;
+
+    for(int i=n;i<2*n;i++) {
+        for(int j=n;j<2*n;j++) ans += c[i][j];
+    }
+
+    vector<pair<int, int>> goodPts = {
+        {0, n}, {0, 2*n-1}, {n-1, n}, {n-1, 2*n-1},
+        {n, 0}, {n, n-1}, {2*n-1, 0}, {2*n-1, n-1}
+    };
+
+    int mnCost = 1e9+10;
+    for(auto [x, y]: goodPts) {
+        mnCost = min(mnCost, c[x][y]);
+    }
+
+    ans += mnCost;
+    cout << ans << "\n";
+
 }
  
 signed main() {

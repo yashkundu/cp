@@ -1,11 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 17 Dec, 2023 | 12:09:39
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <set>
  
 using namespace std;
  
@@ -13,25 +14,34 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+vector<pair<int, int>> v = {{1, -1}, {-1, 1}, {-1, -1}, {1, 1}};
  
 void solve() {
-    int n;
-    cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+    int a, b;
+    cin >> a >> b;
+
+    int kx, ky, qx, qy;
+    cin >> kx >> ky;
+    cin >> qx >> qy;
+
+    set<pair<int, int>> st1, st2;
+    for(auto [i, j]: v) {
+        st1.emplace(kx+i*a, ky+j*b);
+        st1.emplace(kx+i*b, ky+j*a);
+        st2.emplace(qx+i*a, qy+j*b);
+        st2.emplace(qx+i*b, qy+j*a);
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
-    }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    int ans = 0;
+    for(auto p: st2) if(st1.count(p)) ans++;
+
+    cout << ans << "\n";
+
+
+
+
+
 }
  
 signed main() {

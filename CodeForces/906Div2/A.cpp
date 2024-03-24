@@ -1,11 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 15 Nov, 2023 | 22:07:24
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <set>
  
 using namespace std;
  
@@ -17,21 +18,34 @@ mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+    vector<int> a(n);
+    for(int &x: a) cin >> x;
+
+    int cnt = 1;
+    for(int i=1;i<n;i++) if(a[i]==a[0]) cnt++;
+
+    set<int> st;
+    for(int i=0;i<n;i++) st.insert(a[i]);
+
+    if(st.size()==1) {
+        cout << "Yes\n";
+        return;
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+
+    if(st.size()==2) {
+        if(n&1 && (cnt==n/2 || cnt==n/2+1)) {
+            cout << "Yes\n";
+            return;
+        }
+        if(!(n&1) && (cnt==n/2)) {
+            cout << "Yes\n";
+            return;
         }
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    cout << "No\n";
+
+
 }
  
 signed main() {

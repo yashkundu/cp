@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 03 Mar, 2024 | 19:41:25
 **/
 #include <iostream>
 #include <vector>
@@ -14,6 +14,33 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
 
 template<int MOD> struct mint {
     static const int mod = MOD;
@@ -59,41 +86,58 @@ template<int MOD> struct mint {
         out << o.v; return out;
     }
 };
+const int mod = 1e9+7;
+using mi=mint<mod>;
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
 
-mi fact[N];
 
-void precalc() {
-    fact[0] = mi(1);
+const int N = 1e5+5;
+int phi[N];
+vector<int> fact[N];
+
+void precompute() {
     for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
+        for(int j=i;j<N;j+=i) fact[j].push_back(i);
     }
+
+    for(int i=0;i<N;i++) phi[i] = i;
+
+    for(int i=2;i<N;i++) {
+        if(phi[i]==i) {
+            // it's a prime
+            for(int j=i;j<N;j+=i) phi[j] -= phi[j]/i;
+        }
+    }
+
+}
+
+int gcd(int a, int b) {
+    return (a==0?b:gcd(b%a, a));
+}
+
+ll lcm(int a, int b) {
+    return 1LL*a*b/gcd(a, b);
 }
  
 void solve() {
-    string s;
-    cin >> s;
+    int n;
+    cin >> n;
 
-    int minOps = 0;
-    mi totSeq(1);
-
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    mi ans = 0;
+    // iterating over c
+    for(int c=1;c<n;c++) {
+        // a+b = n - c
+        // iterating over possible gcd values by iterating over the factors of (a+b)
+        for(int f: fact[n-c]) {
+            // the number of times gcd(a, b) == f
+            // phi(n-c)-1
+            mi l = mi(lcm(c, f));
+            if((n-c)/f==1) continue;
+            ans += l*(phi[(n-c)/f]);
+        }
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
 
+    cout << ans.v << "\n";
 
 }
  
@@ -102,8 +146,8 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
-    precalc();
+    // cin >> t;
+    precompute();
     while (t--) {
         solve();
     }

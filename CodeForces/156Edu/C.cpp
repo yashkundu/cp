@@ -1,11 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 15 Oct, 2023 | 23:51:18
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <assert.h>
  
 using namespace std;
  
@@ -15,23 +16,40 @@ typedef long double ld;
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
  
 void solve() {
-    int n;
-    cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+    string s;
+    cin >> s;
+    int n = s.size();
+    ll pos;
+    cin >> pos;
+
+    ll curSum = 0;
+    int cnt = 0;
+    ll x = n;
+    while(curSum+x<pos) {
+        curSum += x;
+        x--;
+        cnt++;
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+
+    vector<char> v;
+
+    int i=0;
+    while(cnt>0) {
+        if(i>=n) break;
+        if(!v.empty() && v.back()>s[i]) {
+            v.pop_back();
+            cnt--;
         }
+        else v.push_back(s[i++]);
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+    for(int j=i;j<n;j++) v.push_back(s[j]);
+
+    assert(v.size()>=pos-curSum);
+    cout << v[pos-curSum-1];
+
+
+
+
 }
  
 signed main() {

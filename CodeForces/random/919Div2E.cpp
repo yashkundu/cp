@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 17 Feb, 2024 | 18:07:45
 **/
 #include <iostream>
 #include <vector>
@@ -60,39 +60,42 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
+const int mod = 998244353;
+using mi=mint<mod>;
 
-mi fact[N];
-
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
-}
+const int N = 2505;
+// dp[i][j] - the number of auxiliary array with product sum i and last element j
+mi dp[N][N];
  
 void solve() {
-    string s;
-    cin >> s;
+    int n, k;
+    cin >> n >> k;
+    for(int i=0;i<=n;i++) for(int j=0;j<=k;j++) dp[i][j] = 0;
 
-    int minOps = 0;
-    mi totSeq(1);
 
-    int n = s.size();
-    int len = 0;
+    dp[0][0] = 1;
 
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+
+
+    for(int i=0;i<=n;i++) {
+        // iterating over the sum of pair product
+        for(int j=1;j<=k;j++) {
+            // iterating over the last element of the auxiliary array
+            // dp[i][j] 
+            // iterating over the last element of the array in the previous state
+            for(int p=0;p<=1+k-j && i-p*j>=0;p++) {
+                // j+p-1<=k
+                // p <= 1+k-j
+                // dp[i][j] += dp[i-pj][p]
+                dp[i][j] += dp[i-p*j][p];
+            }
+        }
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
+
+    mi ans = 0;
+    for(int j=1;j<=k;j++) ans += dp[n][j];
+
+    cout << ans.v << "\n";
 
 
 }
@@ -103,7 +106,6 @@ signed main() {
  
     int t = 1;
     cin >> t;
-    precalc();
     while (t--) {
         solve();
     }

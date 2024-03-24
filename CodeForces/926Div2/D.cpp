@@ -1,12 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 16 Feb, 2024 | 11:50:34
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <assert.h>
+#include  <assert.h>
  
 using namespace std;
  
@@ -14,6 +14,7 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
 
 template<int MOD> struct mint {
     static const int mod = MOD;
@@ -60,41 +61,53 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
+const int mod = 998244353;
+using mi=mint<mod>;
 
-mi fact[N];
 
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
+const int N = 3e5+10;
+vector<int> g[N];
+// dp[i] - the number of good sets in the subtree with root i
+mi dp[N];
+
+
+void dfs(int v, int p) {
+    // I choose only v as the set or leave it empty
+    dp[v] = mi(1);
+    mi k = 1;
+    for(int u: g[v]) {
+        if(u==p) continue;
+        dfs(u, v);
+        k *= dp[u];
     }
+    dp[v] += k;
 }
+
+
+
+
  
 void solve() {
-    string s;
-    cin >> s;
+    int n;
+    cin >> n;
+    for(int i=0;i<n;i++) g[i].clear();
 
-    int minOps = 0;
-    mi totSeq(1);
-
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    for(int i=0;i<n-1;i++) {
+        int u, v;
+        cin >> u >> v;
+        u--, v--;
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
+
+    dfs(0, -1);
+    mi ans = dp[0];
+    
+    for(int i=1;i<n;i++) ans += (dp[i]-1);
+    cout << ans.v << "\n";
 
 
+    
 }
  
 signed main() {
@@ -103,7 +116,6 @@ signed main() {
  
     int t = 1;
     cin >> t;
-    precalc();
     while (t--) {
         solve();
     }

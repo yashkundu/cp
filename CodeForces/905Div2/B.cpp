@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 13 Nov, 2023 | 23:03:16
 **/
 #include <iostream>
 #include <vector>
@@ -15,23 +15,27 @@ typedef long double ld;
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
  
 void solve() {
-    int n;
-    cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+    int n, k;
+    cin >> n >> k;
+    vector<int> a(n);
+    for(int &x: a) cin >> x;
+
+    int minOps = 10;
+    for(int x: a) {
+        minOps = min(minOps, (k-(x%k))%k);
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
+
+    if(k==4 && minOps>0) {
+        int even = 0, odd = 0;
+        for(int x: a) if(x&1) odd++; else even++;
+        if(even>1) minOps = 0;
+        else if(even==1) minOps = 1;
+        else minOps = min(minOps, 2);
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    cout << minOps << "\n";
+
+
 }
  
 signed main() {

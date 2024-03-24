@@ -1,11 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 28 Dec, 2023 | 09:12:28
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <stack>
 #include <assert.h>
  
 using namespace std;
@@ -14,6 +15,33 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
 
 template<int MOD> struct mint {
     static const int mod = MOD;
@@ -60,39 +88,60 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
+const int mod = 998244353;
 
-mi fact[N];
+using mi=mint<mod>;
 
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
-}
+const int N = 3e5+100;
+int p[N];
+mi dp1[N], dp2[N];
+// lR[i] - the first number greater than a[i] on the left
+int lR[N];
  
 void solve() {
-    string s;
-    cin >> s;
+    int n;
+    cin >> n;
 
-    int minOps = 0;
-    mi totSeq(1);
+    for(int i=0;i<n;i++) cin >> p[i];
 
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    
+    stack<int> st;
+    for(int i=0;i<n;i++) {
+        while(!st.empty() && p[st.top()]>=p[i]) st.pop();
+        if(st.empty()) lR[i+1] = 0;
+        else lR[i+1] = st.top()+1;
+        st.push(i);
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
+
+
+    dp1[0] = 1;
+    dp2[0] = 0;
+
+    int mnEl = 1e9+100;
+
+    for(int i=1;i<=n;i++) {
+        // dp1[i]  =  
+        // x = dp1[i-1] - dp1[lR[i]] + dp2[lR[i]]
+        mi x = dp1[i-1] - dp1[lR[i]] + dp2[lR[i]];
+        mnEl = min(mnEl, p[i-1]);
+        if(mnEl==p[i-1]) x += 1;
+        dp1[i]  = dp1[i-1] + x;
+        dp2[i] = dp2[lR[i]] + x;
+
+    }
+    
+
+
+    mi ans = 0;
+    mnEl = 1e9+100;
+    for(int i=n;i>0;i--) {
+        mnEl = min(mnEl, p[i-1]);
+        if(mnEl==p[i-1]) {
+            ans += dp1[i] - dp1[i-1];
+        }
+    }
+
+    cout << ans.v << "\n";
 
 
 }
@@ -103,7 +152,6 @@ signed main() {
  
     int t = 1;
     cin >> t;
-    precalc();
     while (t--) {
         solve();
     }

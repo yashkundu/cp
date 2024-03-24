@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 10 Dec, 2023 | 12:58:28
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,41 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+const int N = 3e5+10;
+
+int tree[N][2] = {0};
+string s;
+
+
+void dfs(int v, int count, int &ans) {
+    if(!tree[v][0] && !tree[v][1]) ans = min(ans, count);
+    if(tree[v][0]) dfs(tree[v][0], count + ((s[v]!='L')?1:0), ans);
+    if(tree[v][1]) dfs(tree[v][1], count + ((s[v]!='R')?1:0), ans);
+}
+
  
 void solve() {
+
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
+    cin >> s;
+
+    for(int i=0;i<n;i++) tree[i][0] = tree[i][1] = 0;
+
     for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+        cin >> tree[i][0] >> tree[i][1];
+        if(tree[i][0]) tree[i][0]--;
+        if(tree[i][1]) tree[i][1]--;
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
-    }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    int ans = 1e9;
+    dfs(0, 0, ans);
+
+    cout << ans << "\n";
+
+
+   
 }
  
 signed main() {

@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 08 Oct, 2023 | 22:43:18
 **/
 #include <iostream>
 #include <vector>
@@ -14,6 +14,7 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
 
 template<int MOD> struct mint {
     static const int mod = MOD;
@@ -61,39 +62,62 @@ template<int MOD> struct mint {
 };
 
 using mi=mint<998244353>;
-const int N = 2e5+10;
 
-mi fact[N];
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
 
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
-}
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
+
+const int N = 1e5+10;
+int cnt[N] = {0};
+
  
 void solve() {
-    string s;
-    cin >> s;
-
-    int minOps = 0;
-    mi totSeq(1);
-
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    int n;
+    cin >> n;
+    vector<int> a(n+1);
+    for(int i=1;i<=n;i++) cin >> a[i];
+    for(int i=1;i<=n;i++) {
+        int maxEl = 0;
+        for(int j=i;j<=n;j+=i) {
+            maxEl = max(maxEl, a[j]);
+        }
+        a[i] = maxEl;
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
+    for(int i=1;i<=n;i++) cnt[a[i]]++;
 
+
+    mi ans = 0;
+
+    int pSum = 0;
+    for(int i=0;i<N;i++) {
+        ans += mi(i)*(pow(mi(2), pSum))*(pow(mi(2), cnt[i])-1);
+        pSum += cnt[i];
+    }
+
+    cout << ans << "\n";
 
 }
  
@@ -102,8 +126,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
-    precalc();
+    // cin >> t;
     while (t--) {
         solve();
     }

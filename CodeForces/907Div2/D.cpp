@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 16 Dec, 2023 | 19:41:02
 **/
 #include <iostream>
 #include <vector>
@@ -14,6 +14,36 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
+
+
+const int mod = 1e9+7;
 
 template<int MOD> struct mint {
     static const int mod = MOD;
@@ -60,40 +90,50 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
+using mi=mint<mod>;
 
-mi fact[N];
 
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
+pair<ll, ll> intersect(pair<ll, ll> p1, pair<ll, ll> p2) {
+    return {max(p1.first, p2.first), min(p1.second, p2.second)};
 }
+
+const ll inf = 8e18;
+
+
  
 void solve() {
-    string s;
-    cin >> s;
+    ll l, r;
+    cin >> l >> r;
 
-    int minOps = 0;
-    mi totSeq(1);
+    int start = 63 - __builtin_clzll(l);
+    int end = 64 - __builtin_clzll(r);
 
-    int n = s.size();
-    int len = 0;
+    mi ans = 0;
 
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+
+    ll x = 1LL<<start;
+
+    for(int k=start;k<end;k++) {
+        // [2^start, 2^start+1)
+        // f(x) - k
+        ll minNum = x;
+        ll maxNum = minNum*2;
+        x *= 2;
+        int lg = 0;
+        ll num = 1;
+        while(num<=minNum) {
+            if(num>inf/k) num = inf;
+            else num *= k;
+            lg++;
+        }
+        // intersect
+        pair<ll, ll> p1 = intersect({minNum, min(maxNum, num)}, {l, r+1});
+        pair<ll, ll> p2 = intersect({min(num, maxNum), maxNum}, {l, r+1});
+        ans += mi(max(p1.second-p1.first, 0LL))*(lg-1);
+        ans += mi(max(p2.second-p2.first, 0LL))*(lg);
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
 
+    cout << ans << "\n";
 
 }
  
@@ -103,7 +143,6 @@ signed main() {
  
     int t = 1;
     cin >> t;
-    precalc();
     while (t--) {
         solve();
     }

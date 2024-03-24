@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 29 Feb, 2024 | 23:35:41
 **/
 #include <iostream>
 #include <vector>
@@ -14,7 +14,6 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
-
 template<int MOD> struct mint {
     static const int mod = MOD;
     int v;
@@ -60,41 +59,56 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
+const int mod = 998244353;
+using mi=mint<mod>;
 
-mi fact[N];
-
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
-}
+const int N = 105;
+mi dp[N][N];
+int a[N][N];
  
 void solve() {
-    string s;
-    cin >> s;
+    int n;
+    cin >> n;
 
-    int minOps = 0;
-    mi totSeq(1);
-
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    for(int i=1;i<=n;i++) {
+        for(int j=i;j<=n;j++) {
+            cin >> a[i][j];
+        }
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
+
+    for(int i=0;i<=n;i++) for(int j=0;j<=n;j++) dp[i][j] = 0;
+    dp[0][0] = 1;
+
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<=i;j++) {
+            // dp[i][j] - i len bString with a[j] != a[i]
+            // i+1
+            // put a[i+1] same as a[i]
+            bool canBeSame = true;
+            for(int k=1;k<=j;k++) if(a[k][i+1]==1) canBeSame = false;
+            for(int k=j+1;k<=i+1;k++) if(a[k][i+1]==2) canBeSame = false;
+            if(canBeSame) {
+                dp[i+1][j] += dp[i][j];
+            }
+
+            // put a[i+1] same as a[j]
+            bool canBeDifferent = true;
+            for(int k=1;k<=j;k++) if(a[k][i+1]==1) canBeDifferent = false;
+            for(int k=j+1;k<=i;k++) if(a[k][i+1]==1) canBeDifferent = false;
+            if(a[i+1][i+1]==2) canBeDifferent = false;
+            if(canBeDifferent) {
+                dp[i+1][i] += dp[i][j];
+            }
+        }
+    }
+
+    mi ans = 0;
+    for(int i=0;i<=n;i++) ans += dp[n][i];
+
+    cout << ans.v << "\n";
 
 
+    
 }
  
 signed main() {
@@ -102,8 +116,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
-    precalc();
+    // cin >> t;
     while (t--) {
         solve();
     }

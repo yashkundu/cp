@@ -1,11 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 01 Mar, 2024 | 20:14:06
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <algorithm>
  
 using namespace std;
  
@@ -17,21 +18,14 @@ mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
-    }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
-    }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+    vector<int> a(n);
+
+    for(int i=0;i<n;i++) cin >> a[i];
+    sort(a.begin(), a.end());
+
+    int ans = a[n-1] - a[0] + a[n-1] - a[1] + a[n-2] - a[1] + a[n-2] - a[0];
+    cout << ans << "\n";
+
 }
  
 signed main() {

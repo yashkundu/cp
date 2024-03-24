@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 29 Feb, 2024 | 20:22:43
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,45 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+const int N = 2e5+10;
+int a[2][N];
  
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
-    }
-    int w = v[0].first;
-    int maxE = 0;
+
+    string s;
+    cin >> s;
+    for(int i=0;i<n;i++) a[0][i] = s[i]-'0';
+    cin >> s;
+    for(int i=0;i<n;i++) a[1][i] = s[i] - '0';
+
+    int left = 0, right = n;
+
     for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+        if(a[0][i]<a[1][i-1]) left = i;
+        if(a[0][i]>a[1][i-1]) {
+            right = i;
+            break;
         }
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+
+    int i = 0;
+    while(i<=left) {
+        cout << a[0][i];
+        i++;
+    }
+    i--;
+    while(i<=n-1) {
+        cout << a[1][i];
+        i++;
+    }
+
+    cout << "\n";
+    cout << right - left << "\n";
+
 }
  
 signed main() {

@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 22 Feb, 2024 | 22:39:51
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,33 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+int query(int l, int r) {
+    if(l==r) return 0;
+    cout << "? " << l << " " << r << endl;
+    int x;
+    cin >> x;
+    return x;
+}
+
+
+int find_max(int l, int r) {
+    if(l==r) return l;
+    int mid = (l+r)/2;
+    int ind1 = find_max(l, mid);
+    int ind2 = find_max(mid+1, r);
+    // merge those two results into bigger one
+    if(query(l, ind2)>query(l, ind2-1)) return ind1;
+    return ind2;
+}
+
+
  
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
-    }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
-    }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+    int ind = find_max(1, n);
+    cout << "! " << ind << endl;
 }
  
 signed main() {

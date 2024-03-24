@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 09 Dec, 2023 | 23:28:07
 **/
 #include <iostream>
 #include <vector>
@@ -17,21 +17,33 @@ mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 void solve() {
     int n;
     cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+    vector<int> v(n);
+    for(int &x: v) cin >> x;
+    int minEl = 1e9, maxEl = 0;
+    for(int x: v) {
+        minEl = min(minEl, x);
+        maxEl = max(maxEl, x);
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
+
+    vector<int> ans;
+    while(minEl!=maxEl) {
+        if(minEl&1) {
+            ans.push_back(1);
+            minEl = (minEl+1)/2;
+            maxEl = (maxEl+1)/2;
+        } else {
+            ans.push_back(0);
+            minEl /= 2;
+            maxEl /= 2;
         }
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    cout << ans.size() << "\n";
+    if(ans.size()<=n) {
+        for(int &x: ans) cout << x << " ";
+        cout << "\n";
+    }
+
 }
  
 signed main() {

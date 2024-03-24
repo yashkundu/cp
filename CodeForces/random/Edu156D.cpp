@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 23:51:59
+*   created: 20 Feb, 2024 | 00:22:59
 **/
 #include <iostream>
 #include <vector>
@@ -60,39 +60,34 @@ template<int MOD> struct mint {
     }
 };
 
-using mi=mint<998244353>;
-const int N = 2e5+10;
-
-mi fact[N];
-
-void precalc() {
-    fact[0] = mi(1);
-    for(int i=1;i<N;i++) {
-        fact[i] = mi(i)*fact[i-1];
-    }
-}
+const int mod = 998244353;
+using mi=mint<mod>;
  
 void solve() {
+    int n, m;
+    cin >> n >> m;
     string s;
     cin >> s;
 
-    int minOps = 0;
-    mi totSeq(1);
-
-    int n = s.size();
-    int len = 0;
-
-    for(int i=0;i<n;) {
-        int j = i;
-        while(j<n && s[i]==s[j]) j++;
-        int cnt = j - i;
-        len += cnt-1;
-        minOps += cnt-1;
-        totSeq *= mi(cnt);
-        i = j;
+    mi ans = 1;
+    for(int i=0;i<n;i++) {
+        if(s[i]=='?' && i) ans *= i;
     }
-    totSeq *= fact[len];
-    cout << minOps << " " << totSeq << "\n";
+
+    cout << (s[0]=='?'?0:ans.v) << "\n";
+
+    while(m--) {
+        int i;
+        char c;
+        cin >> i;
+        cin >> c;
+        i--;
+        if(s[i]=='?' && i) ans /= i;
+        s[i] = c;
+        if(s[i]=='?' && i) ans *= i;
+        cout << (s[0]=='?'?0:ans.v) << "\n";
+    }
+
 
 
 }
@@ -102,8 +97,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
-    precalc();
+    // cin >> t;
     while (t--) {
         solve();
     }

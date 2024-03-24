@@ -1,6 +1,6 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 24 Sep, 2023 | 20:09:15
+*   created: 04 Mar, 2024 | 18:13:25
 **/
 #include <iostream>
 #include <vector>
@@ -13,25 +13,32 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+const int N = 1e3+5;
+vector<int> g[N];
+int a[N];
  
 void solve() {
-    int n;
-    cin >> n;
-    vector<pair<int, int>> v;
-    for(int i=0;i<n;i++) {
-        int s, e;
-        cin >> s >> e;
-        v.emplace_back(s, e);
+    int n, m;
+    cin >> n >> m;
+    for(int i=0;i<n;i++) g[i].clear();
+
+    for(int i=0;i<n;i++) cin >> a[i];
+
+    for(int i=0;i<m;i++) {
+        int u, v;
+        cin >> u >> v;
+        u--, v--;
+        g[u].push_back(v);
     }
-    int w = v[0].first;
-    int maxE = 0;
-    for(int i=1;i<n;i++) {
-        if(v[i].first>=w) {
-            maxE = max(maxE, v[i].second);
-        }
+
+
+    // simulating the first n rounds
+    for(int t=1;t<=n;t++) {
+        // get S: {x, ax>0}
     }
-    if(maxE<v[0].second) cout << v[0].first << "\n";
-    else cout << "-1\n";
+
+    
 }
  
 signed main() {
