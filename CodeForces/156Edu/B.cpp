@@ -1,13 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 15 Oct, 2023 | 20:58:53
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
+#include <iomanip>
  
 using namespace std;
  
@@ -43,80 +42,36 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
+const ld del = 1e-12;
 
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
+bool isInsideTheCircle(int x, int y, int cx, int cy, ld r) {
+    ll dis = 1LL*(x-cx)*(x-cx) + 1LL*(y-cy)*(y-cy);
+    return dis<=r*r;
 }
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
-
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+    int px, py, ax, ay, bx, by;
+    cin >> px >> py >> ax >> ay >> bx >> by;
+    ld lo = 0, hi = 4e3;
+    auto checkW = [&](ld w) {
+        if(isInsideTheCircle(0, 0, ax, ay, w) && isInsideTheCircle(px, py, ax, ay, w)) return true;
+        if(isInsideTheCircle(0, 0, bx, by, w) && isInsideTheCircle(px, py, bx, by, w)) return true;
+        if(!isInsideTheCircle(0, 0, ax, ay, w) && !isInsideTheCircle(0, 0, bx, by, w)) return false;
+        if(!isInsideTheCircle(px, py, ax, ay, w) && !isInsideTheCircle(px, py, bx, by, w)) return false;
+        ll dis = (ax-bx)*(ax-bx) + (ay-by)*(ay-by);
+        return dis <= 4*w*w;
+    };
+    while(hi-lo>del) {
+        ld mid = (lo+hi)/2.0;
+        if(checkW(mid)) {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
-
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
-
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
-
+    ld ans = lo+(hi-lo)/2;
+    cout << setprecision(15) <<  ans << "\n";
 }
  
 signed main() {

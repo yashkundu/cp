@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 21 Mar, 2024 | 20:45:31
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -44,78 +42,111 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #endif
 
 
+const int N = 1e3+10;
+bool a[N][N];
+int n, m;
 
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
+bool isGood(int x, int y) {
+    return x>=1 && x<=n && y>=1 && y<=m && !a[x][y];
 }
 
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
+
+
+ll calc(int i, int j) {
+    int cnt1 = 0;
+    bool f = true;
+    int x = i, y = j;
+    while(isGood(x, y)) {
+        if(f) y++;
+        else x++;
+        cnt1++;
+        f = !f;
     }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
+    x = i; y = j;
+    f = true;
+    int cnt2 = 0;
+    while(isGood(x, y)) {
+        if(f) x--;
+        else y--;
+        cnt2++;
+        f = !f;
     }
-}
+
+    ll sum = 1LL*cnt1*cnt2;
+
+    // second type
+    cnt1 = cnt2 = 0;
+    x = i; y = j;
+    f = true;
+    while(isGood(x, y)) {
+        if(f) x++;
+        else y++;
+        cnt1++;
+        f = !f;
+    }
+    x = i; y = j;
+    f = true;
+    while(isGood(x, y)) {
+        if(f) y--;
+        else x--;
+        cnt2++;
+        f = !f;
+    }
+    sum += 1LL*cnt1*cnt2;
+    return sum-1;
+} 
+
 
 
  
 void solve() {
+    int q;
+    cin >> n >> m >> q;
+    ll curAns = 0;
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+    for(int i=1;i<=n;i++) {
+        int x = i, y = 1;
+        int cnt = 0;
+        bool f = true;
+        while(isGood(x, y)) {
+            if(f) x++;
+            else y++;
+            cnt++;
+            f = !f;
+        }
+        curAns += 1LL*cnt*(cnt-1)/2;
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+    for(int j=1;j<=m;j++) {
+        int x = 1, y = j;
+        int cnt = 0;
+        bool f = true;
+        while(isGood(x, y)) {
+            if(f) y++;
+            else x++;
+            cnt++;
+            f = !f;
+        }
+        curAns += 1LL*cnt*(cnt-1)/2;
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+    curAns += 1LL*n*m;
+
+    while(q--) {
+        int x, y;
+        cin >> x >> y;
+        if(!a[x][y]) {
+            ll del = calc(x, y);
+            curAns -= del;
+            a[x][y] = 1;
+        } else {
+            a[x][y] = 0;
+            ll del = calc(x, y);
+            curAns += del;
+        }
+        cout << curAns << "\n";
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
 
 }
  
@@ -124,7 +155,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
+    // cin >> t;
     while (t--) {
         solve();
     }

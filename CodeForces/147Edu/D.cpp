@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 21 Apr, 2023 | 17:40:06
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -43,80 +41,34 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
+const int inf = 2e9;
  
 void solve() {
+    int n, k;
+    cin >> n >> k;
+    vector<pair<int, int>> v(n);
+    for(int i=0;i<n;i++) cin >> v[i].first;
+    for(int j=0;j<n;j++) cin >> v[j].second;
+    int ans = inf;
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+    int curOne = 0, curNOne = 0;
+    int tot = 0;
+    for(auto [l, r]: v) {
+        // if(tot+(r-l+1)<k) continue;
+        if(tot-curOne>=k) break;
+        if(tot+(r-l+1)>=k) {
+            int leftOnes = k - (tot-curOne);
+            int curAns = (l+min(r-l+1, leftOnes)-1) + 2*curNOne + 2*(leftOnes-min(leftOnes, r-l+1))+2;
+            // debug(l, r, leftOnes, tot, curOne, curNOne, curAns);
+            ans = min(ans, curAns);
+        }
+        if(l==r) curOne++;
+        else curNOne++;
+        tot += (r-l+1);
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
-
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
-
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
-
+    if(ans==inf) ans = -1;
+    cout << ans << "\n";
 }
  
 signed main() {

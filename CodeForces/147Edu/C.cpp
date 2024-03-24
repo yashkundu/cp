@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 21 Apr, 2023 | 13:41:06
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -42,81 +40,35 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #else
 #define debug(x...)
 #endif
-
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
+const int N = 2e5+10;
+vector<int> lg(N);
+
+void precalc() {
+    lg[1] = 1;
+    for(int i=2;i<N;i++) lg[i] = 1 + lg[i/2];
+}
+
 void solve() {
+    string s;
+    cin >> s;
+    int n = s.size();
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
-    }
-
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
-
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
-
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
-
+    auto calc = [&s, &n](char ch) -> int {
+        int ans = 0;
+        for(int i=0;i<n;i++) {
+            if(s[i]==ch) continue;
+            int j = i;
+            while(j<n && s[j]!=ch) j++;
+            ans = max(ans, lg[j-i]);
+            // debug(i, j);
+            i = j;
+        }
+        return ans;
+    };
+    int ans = 1e9;
+    for(int i=0;i<26;i++) ans = min(ans, calc((char)('a'+i)));
+    cout << ans << "\n";
 }
  
 signed main() {
@@ -125,6 +77,7 @@ signed main() {
  
     int t = 1;
     cin >> t;
+    precalc();
     while (t--) {
         solve();
     }

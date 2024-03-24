@@ -1,13 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 22 Apr, 2023 | 11:18:58
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
+#include <assert.h>
  
 using namespace std;
  
@@ -42,80 +41,46 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #else
 #define debug(x...)
 #endif
-
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
+    int k;
+    cin >> k;
+    string str;
+    cin >> str;
+    int n = str.size();
+    
+    while(k-->0) {
+        int l = 0, r = -1;
+        int sum = 0, pre = -1;
+        for(int i=0;i<n;i++) {
+            if(sum==0) pre = i;
+            sum += (str[i]=='('?1:-1);
+            if(sum==0) {
+                if(i-pre+1>r-l+1) {
+                    l = pre; r = i;
+                }
+            }
+        }
+        if(r-l+1>2) {
+            assert((r-l+1)%2==0);
+            string sTemp = (l>0?str.substr(0, l):"");
+            sTemp += "()";
+            sTemp += str.substr(l+1, r-l-1);
+            sTemp += (r<n-1?str.substr(r+1, n-1-r):"");
+            str = sTemp;
+        }
+    }
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
+    // debug(str);
+    ll ans = 0;
+    int bal = 0;
     for(int i=0;i<n;i++) {
-        cin >> a[i];
-    }
+        if(str[i]=='(') ans += bal;
+        bal += (str[i]=='('?1:-1);
+    }  
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
+    cout << ans << "\n";
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
-
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
 
 }
  

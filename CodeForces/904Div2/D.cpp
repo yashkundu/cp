@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 11 Nov, 2023 | 21:01:00
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -43,80 +41,54 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
+const int N = 1e6+10;
+int cnt[N] = {0};
+ll ans[N] = {0};
+bool vis[N];
  
 void solve() {
-
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+    int n;
+    cin >> n;
+    fill(ans, ans+n+1, 0);
+    fill(vis, vis+n+1, 0);
+    vector<int> a(n);
+    for(int &x: a) {
+        cin >> x;
+        cnt[x]++;
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+    for(int i=n;i>0;i--) {
+        int freq = 0;
+        for(int j=i;j<=n;j+=i) {
+            ans[i] -= ans[j];
+            freq += cnt[j];
+        }
+        ans[i] += 1LL*freq*(freq-1)/2;
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+
+    // number of pairs whose gcd is exactly i
+    for(int i=1;i<=n;i++) {
+        if(!cnt[i]) continue;
+        for(int j=2*i;j<=n;j+=i) {
+            if(!cnt[j] && !vis[j]) {
+                ans[i] += ans[j];
+                vis[j] = 1;
+            }
+        }
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    ll res = 0;
+    for(int i=1;i<=n;i++) if(cnt[i]) res += ans[i];
 
+    res = 1LL*n*(n-1)/2 - res;
+
+
+
+    cout << res << "\n";
+
+
+    for(int &x: a) cnt[x]--;
 }
  
 signed main() {

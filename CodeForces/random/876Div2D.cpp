@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 14 Feb, 2024 | 23:40:08
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -43,79 +41,43 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
+const int N = 502;
+// dp[i][j] - the len of the maximum increasing sequence in [1..i] such that i is a part of the sequence and it has atmost j movable groups
+int dp[N][N];
+int c[N];
  
 void solve() {
+    int n;
+    cin >> n;
+    for(int i=1;i<=n;i++) cin >> c[i];
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
+    c[0] = 0;
+    for(int i=0;i<=n;i++) for(int j=0;j<=n;j++) dp[i][j] = 0;
 
     for(int i=0;i<n;i++) {
-        cin >> a[i];
+        for(int j=0;j<n;j++) {
+            // select i+1
+            if(c[i+1]>c[i]) {
+                dp[i+1][j] = 1 + dp[i][j];
+            }
+            for(int k=i+2;k<=n;k++) {
+                if(c[k]<c[i]) continue;
+                dp[k][j+1] = 1 + dp[i][j];
+            }
+        }
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
+    debug(dp[1][0], dp[2][0], dp[3][0], dp[4][0], dp[5][0]);
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+
+    for(int k=1;k<=n;k++) {
+        int ans = dp[n][k];
+        for(int i=n-1;i>0;i--) ans = max(ans, dp[i][k-1]);
+        cout << (n-ans) << " ";
+    }
+    cout << "\n";
+
 
 }
  

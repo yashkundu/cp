@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 19 Feb, 2024 | 14:46:47
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -15,7 +13,6 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
-
 void __print(int x) {cerr << x;}
 void __print(long x) {cerr << x;}
 void __print(long long x) {cerr << x;}
@@ -44,78 +41,45 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #endif
 
 
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
+vector<vector<int>> pos(26, vector<int>());
+vector<int> ptr(26, 0);
 
  
 void solve() {
-
     int n, m;
     cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    string s, t;
+    cin >> s >> t;
 
+    for(int i=0;i<26;i++) {
+        pos[i].clear();
+        ptr[i] = 0;
+    }
 
     for(int i=0;i<n;i++) {
-        cin >> a[i];
+        pos[s[i]-'a'].push_back(i);
     }
+
+    // debug(pos);
+    // debug(ptr);
 
     for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+        int j = t[i]-'a';
+        // debug(j, pos[j], ptr[j]);
+        if(ptr[j]==pos[j].size()) {
+            cout << "NO\n";
+            return;
+        }
+        int indLim = pos[j][ptr[j]];
+        ptr[j]++;
+        for(int k=0;k<j;k++) {
+            while(ptr[k]<pos[k].size() && pos[k][ptr[k]]<indLim) ptr[k]++;
+        }
+        // debug(ptr);
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
+    cout << "YES\n";
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
 
 }
  

@@ -1,20 +1,16 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 19 May, 2023 | 08:32:20
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
 typedef long long ll;
 typedef long double ld;
- 
-mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
 void __print(int x) {cerr << x;}
 void __print(long x) {cerr << x;}
@@ -43,66 +39,73 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
+const int N = 2e5+100;
+const ll mod = 1e9+7; 
+
+ll totWays = 0;
 
 
+ll add(ll a, ll b) {
+    a += b;
+    if(a>=mod) a -= mod;
+    return a;
+}
 
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
+ll mul(ll a, ll b) {
+    return (a*b)%mod;
+}
+
+ll bExp(ll a, ll n) {
+    ll res = 1;
+    while(n) {
+        if(n&1) res = mul(res, a);
+        a = mul(a, a);
+        n = n>>1;
+    }
+    return res;
+}
+
+
+vector<ll> fact(N), invFact(N);
+
 vector<int> g[N];
-vector<bool> vis(N, 0);
+ 
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
 
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
+void preprocess(){
+    fact[0] = 1LL;
+    for(int i=1;i<N;i++) fact[i] = mul(fact[i-1], i);
+    invFact[N-1] = bExp(fact[N-1], mod-2);
+    for(int i=N-2;i>=0;i--) invFact[i] = mul(invFact[i+1], i+1);
 }
 
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
+
+ll nCr(int n, int r) {
+    if(n<r) return 0;
+    return mul(fact[n], mul(invFact[n-r], invFact[r]));
+}
+
+
+int n, k;
+
+// returns the number of nodes in the subtree with root v.
+// then do the calculation
+int dfs(int v, int p=-1) {
+    int nodeCnt = 1;
+    for(int u: g[v]) {
+        if(u==p) continue;
+        int curCnt = dfs(u, v);
+        totWays = add(totWays, mul(nCr(curCnt, k/2), nCr(n-curCnt, k/2)));
+        nodeCnt += curCnt;
     }
-    return false;
+    return nodeCnt;
 }
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
-
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
-    }
-
-    for(int i=0;i<m;i++) {
+    preprocess();
+    cin >> n >> k;
+    for(int i=0;i<n-1;i++) {
         int u, v;
         cin >> u >> v;
         u--, v--;
@@ -110,13 +113,23 @@ void solve() {
         g[v].push_back(u);
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+
+
+    if(k&1) {
+        cout << "1\n";
+        return;
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    dfs(0);
+    ll ans = mul(add(totWays, nCr(n, k)), bExp(nCr(n, k), mod-2));
+    cout << ans << "\n";
 
+
+
+
+
+
+    
 }
  
 signed main() {
@@ -124,7 +137,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
+    // cin >> t;
     while (t--) {
         solve();
     }

@@ -1,13 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 02 Sep, 2023 | 22:20:32
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
+#include <stack>
  
 using namespace std;
  
@@ -43,79 +42,51 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
+    int n;
+    cin >> n;
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    // iterate over the max elements
+    ll ans = 0;
+    for(int mx=n*n;mx>=n;mx--) {
+        ll curAns = 0;
+        int curMax = 0;
+        // mx will be the maximum element of the array p_i*i
+        // the element with value i, can be placed in place [1..mx/i]
+        // take a set of all the positions and then iterate from n to 1 to find the maximal place of each element
+        // will take O(n^3logn) or O(n^3) by using stacks
 
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+        // Will store for each index, the elements whose maximal possible index is that index
+        vector<vector<int>> v;
+        v.assign(n, vector<int>());
+        for(int el=n;el>0;el--) {
+            int ind = min(mx/el, n);
+            v[ind-1].push_back(el);
+        }
+        stack<int> s;
+        bool badCase = false;
+        for(int i=0;i<n;i++) {
+            s.push(i+1);
+            for(int el: v[i]) {
+                if(s.empty()) {
+                    badCase = true;
+                    break;
+                }
+                int maxInd = s.top();
+                s.pop();
+                curMax = max(el*maxInd, curMax);
+                curAns += el*maxInd;
+            }
+            if(badCase) break;
+        }
+        if(badCase) continue;
+        curAns -= curMax;
+        ans = max(curAns, ans);
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
+    cout << ans << "\n";
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
-
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
 
 }
  

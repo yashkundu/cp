@@ -1,14 +1,13 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 15 Mar, 2024 | 18:44:52
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
- 
+#include <algorithm>
+
 using namespace std;
  
 typedef long long ll;
@@ -43,79 +42,66 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
+const int N = 5e5+10;
+int tree[N];
+int inf = 1e9+100;
+int a[N], ord[N];
+int dp[N];
 
+ll pre[N] = {0};
 
+int n;
 
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
+void update(int ind, int val) {
+    for(;ind<=n;ind+=(ind&(-ind))) {
+        tree[ind] = max(tree[ind], val); 
     }
 }
 
+int query(int ind) {
+    int ans = -inf;
+    for(;ind>0;ind-=(ind&(-ind))) {
+        ans = max(ans, tree[ind]);
+    }
+    return ans;
+}
 
- 
 void solve() {
+    cin >> n;
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
+    for(int i=1;i<=n;i++) tree[i] = -inf;
+    for(int i=1;i<=n;i++) {
         cin >> a[i];
+        pre[i] = pre[i-1] + a[i];
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+    vector<pair<int, int>> v;
+    for(int i=1;i<=n;i++) {
+        v.emplace_back(pre[i], -i);
     }
+    sort(v.begin(), v.end());
 
     for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+        ord[-v[i].second]  = i+1;
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    for(int i=1;i<=n;i++) dp[i] = -inf;
+    dp[0] = 0;
+
+    for(int i=1;i<=n;i++) {
+        // taking subsegment of length 1 for case if s<=0
+        dp[i] = max(dp[i], dp[i-1] + (a[i]>0?1:a[i]<0?-1:0));
+
+        // considering all subsegments with s>0
+        dp[i] = max(dp[i], query(ord[i]) + i);
+        if(pre[i]>0) dp[i] = i;
+        update(ord[i], dp[i] - i);
+    }
+
+    cout << dp[n] << "\n";
+
+
+
 
 }
  

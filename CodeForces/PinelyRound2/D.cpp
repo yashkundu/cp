@@ -1,13 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 12 Sep, 2023 | 09:55:41
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
+#include <algorithm>
  
 using namespace std;
  
@@ -42,80 +41,80 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #else
 #define debug(x...)
 #endif
-
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
-
     int n, m;
     cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    vector<vector<char>> ans(n, vector<char>(m, '.'));
+    
+    // vertical dominos
+    vector<pair<int, int>> v;
 
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
-    }
-
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
+    // horizontal dominos
+    vector<pair<int, int>> h;
 
     for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+        string s;
+        cin >> s;
+        for(int j=0;j<m;j++) {
+            if(s[j]=='U') v.emplace_back(i, j);
+            else if(s[j]=='L') h.emplace_back(i, j);
+        }
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    sort(v.begin(), v.end(), [](const pair<int, int> &p1, const pair<int, int> &p2) {
+        if(p1.first!=p2.first) return p1.first<p2.first;
+        return p1.second<p2.second;
+    });
+
+    sort(h.begin(), h.end(), [](const pair<int, int> &p1, const pair<int, int> &p2) {
+        if(p1.second!=p2.second) return p1.second<p2.second;
+        return p1.first<p2.first;
+    });
+
+
+    for(int i=0;i<v.size();) {
+        int j = i;
+        while(j<v.size() && v[j].first==v[i].first) j++;
+        if((j-i)&1) {
+            cout << "-1\n";
+            return;
+        }
+        for(int k=i;k<j;k++) {
+            auto [x, y] = v[k];
+            ans[x][y] = ((k-i)&1)?'W':'B';
+            ans[x+1][y] = ((k-i)&1)?'B':'W';
+        }
+        i = j;
+    }
+
+
+    for(int i=0;i<h.size();) {
+        int j = i;
+        while(j<h.size() && h[j].second==h[i].second) j++;
+        if((j-i)&1) {
+            cout << "-1\n";
+            return;
+        }
+        for(int k=i;k<j;k++) {
+            auto [x, y] = h[k];
+            ans[x][y] = ((k-i)&1)?'W':'B';
+            ans[x][y+1] = ((k-i)&1)?'B':'W';
+        }
+        i = j;
+    }
+
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cout << ans[i][j];
+        }
+        cout << "\n";
+    }
+
+    
+
+
+
 
 }
  

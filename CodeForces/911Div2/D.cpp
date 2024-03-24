@@ -1,13 +1,13 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 12 Dec, 2023 | 09:41:18
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
+#include <map>
+#include <algorithm>
  
 using namespace std;
  
@@ -43,79 +43,51 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
+const int N = 1e5+10;
+vector<int> factors[N];
+
+int cnt[N];
+int cnt2[N];
+
+const int inf = 1e9+10;
 
 
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
+void precompute() {
+    for(int i=1;i<N;i++) {
+        for(int j=i;j<N;j+=i) factors[j].push_back(i);
     }
-    return false;
+    for(int i=0;i<N;i++) cnt2[i] = inf;
 }
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
+    int n;
+    cin >> n;
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    vector<int> a(n);
+    for(int &x: a) cin >> x;
+    sort(a.begin(), a.end());
 
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
-    }
-
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
+    ll ans = 0;
 
     for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+        for(int f: factors[a[i]]) cnt2[f] = 0;
+
+        for(auto it=factors[a[i]].rbegin();it!=factors[a[i]].rend(); it++) {
+            int f = *it;
+            cnt2[f] += cnt[f];
+            ans += 1LL*cnt2[f]*f*(n-i-1);
+            for(int sF: factors[f]) if(cnt2[sF]!=inf) cnt2[sF] -= cnt2[f];
+        }
+
+        for(int f: factors[a[i]]) cnt2[f] = inf;
+
+        for(int f: factors[a[i]]) cnt[f]++;
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    for(int x: a) for(int f: factors[x]) cnt[f] = 0;
+
+    cout << ans << "\n";
+    
 
 }
  
@@ -124,6 +96,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
+    precompute();
     cin >> t;
     while (t--) {
         solve();

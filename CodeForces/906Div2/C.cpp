@@ -1,13 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 15 Nov, 2023 | 23:05:41
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
+#include <deque>
  
 using namespace std;
  
@@ -42,80 +41,51 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #else
 #define debug(x...)
 #endif
-
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
+    int n;
+    cin >> n;
+    string s;
+    cin >> s;
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+    if(n&1) {
+        cout << "-1\n";
+        return;
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+    deque<char> dq;
+
+    for(int i=0;i<n;i++) dq.push_back(s[i]);
+    int removed = 0;
+
+    vector<int> ans;
+
+    while(ans.size()<=300 && dq.size()>0) {
+        if(dq.front()!=dq.back()) {
+            dq.pop_front();
+            dq.pop_back();
+            removed++;
+        }
+        else if(dq.front()=='0') {
+            ans.push_back(dq.size()+removed);
+            dq.push_back('0');
+            dq.push_back('1');
+        } else {
+            ans.push_back(removed);
+            dq.push_front('1');
+            dq.push_front('0');
+        }
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+    if(dq.size()) {
+        cout << "-1\n";
+        return;
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    cout << ans.size() << "\n";
+    for(int x: ans) cout << x << " ";
+
+
 
 }
  

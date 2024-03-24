@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 30 Sep, 2023 | 20:48:19
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -43,79 +41,82 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
+int findMin(vector<int> &v) {
+    int n = v.size();
+    int minInd = -1;
+    int minEl = 1e9+100;
+    for(int i=0;i<n;i++) {
+        if(v[i]<minEl) {
+            minEl = v[i];
+            minInd = i;
+        }
     }
-    return false;
+    return minInd;
 }
 
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
+int findMax(vector<int> &v) {
+    int n = v.size();
+    int maxInd = -1;
+    int maxEl = 0;
+    for(int i=0;i<n;i++) {
+        if(v[i]>maxEl) {
+            maxEl = v[i];
+            maxInd = i;
+        }
     }
+    return maxInd;
 }
-
-
  
 void solve() {
-
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
-
-
+    int n, m, k;
+    cin >> n >> m >> k;
+    vector<ll> ans(4, 0);
+    vector<int> a(n), b(m);
+    ll sumA = 0;
     for(int i=0;i<n;i++) {
         cin >> a[i];
+        sumA += a[i];
+    }
+    for(int &x: b) cin >> x;
+
+    for(int round=1;round<=4;round++) {
+        if(round&1) {
+            int minIndA = findMin(a);
+            int maxIndB = findMax(b);
+            if(a[minIndA]>=b[maxIndB]) {
+                ans[round-1] = sumA;
+                continue;
+            }
+            sumA += (b[maxIndB]-a[minIndA]);
+            int tmp = b[maxIndB];
+            b[maxIndB] = a[minIndA];
+            a[minIndA] = tmp;
+            ans[round-1] = sumA;
+        } else {
+            int minIndB = findMin(b);
+            int maxIndA = findMax(a);
+            if(b[minIndB]>=a[maxIndA]) {
+                ans[round-1] = sumA;
+                continue;
+            }
+            sumA += (b[minIndB]-a[maxIndA]);
+            int tmp = a[maxIndA];
+            a[maxIndA] = b[minIndB];
+            b[minIndB] = tmp;
+            ans[round-1] = sumA;
+        }
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+    if(k<=4) {
+        cout << ans[k-1] << "\n";
+        return;
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+    if(k&1) {
+        cout << ans[2] << "\n";
+    } else {
+        cout << ans[3] << "\n";
     }
-
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
 
 }
  

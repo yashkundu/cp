@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 02 Feb, 2024 | 08:25:04
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -43,80 +41,82 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
+const int N = 5000+100;
+int lMex[N][N];
+int a[N];
+bool present[N];
 
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
+// dp[i][j] -> is it possible to make xor of mexes equal to j in prefix i.
+bool dp[N][N];
  
 void solve() {
+    int n;
+    cin >> n;
+    for(int i=0;i<n;i++) cin >> a[i];
 
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+
+    for(int i=0;i<n;i++) for(int j=0;j<=n+1;j++) lMex[i][j] = n;
+    for(int i=0;i<=n;i++) for(int j=0;j<=n+1;j++) dp[i][j] = 0;
+
+//  10
+//  1 2 0 7 1 2 0 2 4 3
+
+
+    for(int i=0;i<n;i++) {
+        fill(present, present+n+1, 0);
+        int curMex = 0;
+        for(int j=i;j<n;j++) {
+            present[a[j]] = 1;
+            while(curMex<=n && present[curMex]) curMex++;
+            if(lMex[i][curMex]==n)
+                lMex[i][curMex] = j;
+        }
+    }
+
+    for(int j=0;j<=n+1;j++) {
+        for(int i=n-2;i>=0;i--) {
+            lMex[i][j] = min(lMex[i][j], lMex[i+1][j]);
+        }
+    }
+
+
+
+    dp[0][0] = 1;
+    // dp[i][j] -> it is possible to make xor mexes equal to j, in prefix of i where last element is in the last subarray
+    fill(present, present+n+2, 0);
 
 
     for(int i=0;i<n;i++) {
-        cin >> a[i];
+        for(int j=0;j<=n+1;j++) {
+            if(!dp[i][j]) continue;  
+            // if it's already done before, ignore it
+            if(present[j]) continue;
+            // iterate over all possible values of mex of the next subsegment
+            present[j] = 1;
+            for(int x=1;x<=n+1;x++) {
+                if(lMex[i][x]==n) continue;
+                dp[lMex[i][x]+1][j^x] = 1; 
+            }
+        }
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+
+    int ans = 0;
+    for(int j=1;j<=n+1;j++) {
+        for(int i=1;i<=n;i++) {
+            if(dp[i][j]) {
+                ans = j;
+                break;
+            }
+        }
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    cout << ans << "\n";
 
+
+
+    
 }
  
 signed main() {

@@ -1,13 +1,11 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 21 Feb, 2024 | 22:51:33
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
@@ -15,7 +13,6 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
-
 void __print(int x) {cerr << x;}
 void __print(long x) {cerr << x;}
 void __print(long long x) {cerr << x;}
@@ -43,79 +40,118 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
+const int N = 1e5+10;
 vector<int> g[N];
-vector<bool> vis(N, 0);
+vector<int> cycle;
+int dep[N];
 
 
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
+bool dfs(int v, int p, int d) {
+    // check for a back edge to the deepest node in the current trace
+    dep[v] = d;
+    // debug(v, p, dep[v]);
+    int cVertex = -1;
+    int maxDep = 0;
+    for(int u: g[v]) {
+        if(u==p) continue;
+        if(dep[u] && dep[u]>maxDep) {
+            cVertex = u;
+            maxDep = dep[u];
+        }
+    }
+    // debug(cVertex);
+    if(cVertex!=-1) {
+        cycle.push_back(cVertex);
+        cycle.push_back(v);
         return true;
+    }
+    for(int u: g[v]) {
+        if(u==p) continue;
+
+        bool b = dfs(u, v, d+1);
+        if(b) {
+            cycle.push_back(v);
+            return true;
+        }
     }
     return false;
 }
 
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
+
+bool col[N];
+
+void dfs2(int v, int p) {
+    for(int u: g[v]) {
+        if(u==p) continue;
+        col[u] = 1 - col[v];
+        dfs2(u, v);
     }
 }
 
-
  
 void solve() {
-
-    int n, m;
-    cin >> n >> m;
+    int n, m, k;
+    cin >> n >> m >> k;
     for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    fill(dep, dep+n, 0);
+    fill(col, col+n, 0);
+    cycle.clear();
 
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
-    }
 
     for(int i=0;i<m;i++) {
         int u, v;
         cin >> u >> v;
         u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+        g[u].push_back(v), g[v].push_back(u);
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
+
+    dep[0] = 1;
+    bool isCyclic = dfs(0, -1, 1);
+
+    // debug(cycle);
+
+    if(!isCyclic) {
+        // color the graph
+        dfs2(0, -1);
+        // choose the max disjoint set
+        int cnt = 0;
+        for(int i=0;i<n;i++) cnt += (col[i]==0);
+        bool isZero = (cnt>=(n+1)/2);
+        vector<int> indSet;
+        for(int i=0;i<n;i++) if((isZero && col[i]==0) || (!isZero && col[i])) indSet.push_back(i);
+
+        cout << "1\n";
+        for(int i=0;i<(k+1)/2;i++) cout << indSet[i] + 1 << " ";
+        cout << "\n";
+        return;
     }
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    // cycle present
+    int ind = 1;
+    while(ind<cycle.size() && cycle[ind]!=cycle[0]) ind++;
+
+    cycle.resize(ind);
+
+
+    if(cycle.size()<=k) {
+        cout << "2\n";
+        cout << cycle.size() << "\n";
+        for(int x: cycle) cout << x + 1 << " ";
+    } else {
+        cout << "1\n";
+        for(int i=0,j=0;j<(k+1)/2;i+=2,j++) cout << cycle[i] + 1 << " ";
+    }
+
+    cout << "\n";
+
+
+
+
+
+
+
+
 
 }
  
@@ -124,7 +160,7 @@ signed main() {
     cin.tie(0);
  
     int t = 1;
-    cin >> t;
+    // cin >> t;
     while (t--) {
         solve();
     }

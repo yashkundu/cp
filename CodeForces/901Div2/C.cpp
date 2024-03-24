@@ -1,20 +1,24 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 02 Oct, 2023 | 23:16:34
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
  
 using namespace std;
  
 typedef long long ll;
 typedef long double ld;
+
+ll gcd(ll a, ll b) {
+    // a>b
+    return b?gcd(b, a%b):a;
+}
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
 
 void __print(int x) {cerr << x;}
 void __print(long x) {cerr << x;}
@@ -42,80 +46,35 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #else
 #define debug(x...)
 #endif
-
-
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
  
 void solve() {
-
-    int n, m;
+    ll n, m;
     cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    ll g = gcd(n, m);
 
-
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+    ll den = m/g;
+    if(den&(den-1)) {
+        cout << "-1\n";
+        return;
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
-    }
+    ll num = n/g;
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
+    ll r = num%den;
+    int p2 = __builtin_ctzll(den);
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+    int cnt = 0;
+    ll ans = 0;
+    while(r>0) {
+        if(r&1) {
+            ans += ((1LL<<(p2-cnt))-1)*1LL*(1LL<<cnt);
+        }
+        cnt++;
+        r = r>>1;
+    }
+    ans *= g;
+    cout << ans << "\n";
+
 
 }
  

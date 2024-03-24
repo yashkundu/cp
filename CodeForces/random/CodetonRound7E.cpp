@@ -1,13 +1,12 @@
 /**
 *   author: lazyhash(yashkundu)
-*   created: 08 Apr, 2023 | 16:00:55
+*   created: 19 Feb, 2024 | 17:51:45
 **/
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
-#include <numeric>
-#include <set>
+// #include <set>
  
 using namespace std;
  
@@ -15,6 +14,11 @@ typedef long long ll;
 typedef long double ld;
  
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+#define ordered_set __gnu_pbds::tree<int, __gnu_pbds::null_type,less<int>, __gnu_pbds::rb_tree_tag,__gnu_pbds::tree_order_statistics_node_update> 
 
 void __print(int x) {cerr << x;}
 void __print(long x) {cerr << x;}
@@ -44,78 +48,44 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #endif
 
 
-
-
-const int N = 2e5+10;
-vector<int> par(N, 0);
-vector<int> cnt(N, 0);
-vector<int> a(N, 0);
-vector<int> g[N];
-vector<bool> vis(N, 0);
-
-
-int find(int v) {
-    if(v==par[v]) return v;
-    return par[v] = find(par[v]);
-}
-
-bool merge(int u, int v) {
-    u = find(u);
-    v = find(v);
-    if(u!=v) {
-        if(cnt[u]>cnt[v]) swap(u, v);
-        par[u] = v;
-        cnt[v] += cnt[u];
-        return true;
-    }
-    return false;
-}
-
-void calc(int v) {
-    multiset<pair<int, int>> ms;
-    vis[v] = true;
-    for(int u: g[v]) ms.emplace(a[u], u);    
-    while(ms.size()) {
-        auto it = ms.begin();
-        auto [enemy, u] = *it;
-        ms.erase(it);
-        if(!vis[u] && enemy>cnt[find(v)]) break;
-        if(!vis[u]) for(int x: g[u]) ms.emplace(a[x], x);
-        vis[u] = true;
-        merge(u, v);
-    }
-}
-
-
+const int N = 1e6+10;
+int a[N];
+int ans[N];
  
 void solve() {
-
-    int n, m;
-    cin >> n >> m;
-    for(int i=0;i<n;i++) g[i].clear();
-    fill(cnt.begin(), cnt.begin()+n, 1);
-    fill(vis.begin(), vis.begin()+n, 0);
-    iota(par.begin(), par.begin()+n, 0);
+    int n;
+    cin >> n;
+    for(int i=1;i<=n;i++) cin >> a[i];
 
 
-    for(int i=0;i<n;i++) {
-        cin >> a[i];
+    ordered_set st;
+    for(int i=1;i<=n;i++) {
+        if(a[i]>=i) st.insert(a[i]);
     }
 
-    for(int i=0;i<m;i++) {
-        int u, v;
-        cin >> u >> v;
-        u--, v--;
-        g[u].push_back(v);
-        g[v].push_back(u);
+    // debug(st);
+
+    for(int i=n+1;i<=2*n;i++) st.insert(i);
+
+
+
+    for(int i=1;i<=n;i++) {
+        if(a[i]>=i) {
+            // sequential iterators not random access iterators
+            int del = st.order_of_key(a[i]) - st.order_of_key(i);
+            ans[a[i]] = a[i] - i - del;
+            st.erase(a[i]);
+        } else {
+            int del = st.order_of_key(a[i]+n) - st.order_of_key(i);
+            ans[a[i]] = a[i] + n - i - del;
+            st.erase(a[i]+n);
+        }
     }
 
-    for(int i=0;i<n;i++) {
-        if(!vis[i]&&!a[i]) calc(i);
-    }
+    for(int i=1;i<=n;i++) cout << ans[i] << " ";
+    cout << "\n";
 
-    if(cnt[find(0)]==n) cout << "Yes\n";
-    else cout << "No\n";
+
 
 }
  
