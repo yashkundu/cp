@@ -1,6 +1,6 @@
 /**
-*   author: lazyhash(yashkundu)
-*   created: 14 Feb, 2024 | 23:40:08
+*    author:  lazyhash(yashkundu)
+*    created: 14 Jul, 2024 | 14:34:00
 **/
 #include <iostream>
 #include <vector>
@@ -41,43 +41,76 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-const int N = 502;
-// dp[i][j] - the len of the maximum increasing sequence in [1..i] such that i is a part of the sequence and it has atmost j movable groups
-int dp[N][N];
-int c[N];
+const int inf = int(1e9) + 1000;
+const int MAXN = 502;
+
+
+struct Ftree{
+    vector<int> tree;
+    int n;
+
+    void init(int n) {
+        this->n = n+1;
+        tree.resize(n+2);
+        fill(tree.begin(), tree.end(), inf);
+    }
+
+    void update(int ind, int val) {
+        ind++;
+        for(;ind<=n;ind+=ind&-ind) tree[ind] = min(tree[ind], val);
+    }
+
+    int query(int ind) {
+        ind++;
+        int res = inf;
+        for(;ind>0;ind-=ind&-ind) res = min(res, tree[ind]);
+        return res;
+    }
+};
+
+
+
+int n;
+int c[MAXN];
+int dp[MAXN][MAXN];
+
+
+vector<Ftree> ft;
+
+void minimize(int &x, int y) {
+    x = min(x, y);
+}
+
  
 void solve() {
-    int n;
     cin >> n;
-    for(int i=1;i<=n;i++) cin >> c[i];
-
     c[0] = 0;
-    for(int i=0;i<=n;i++) for(int j=0;j<=n;j++) dp[i][j] = 0;
+    for(int i=1;i<=n;i++) cin >> c[i];
+    c[n+1] = n+1;
 
-    for(int i=0;i<n;i++) {
-        for(int j=0;j<n;j++) {
-            // select i+1
-            if(c[i+1]>c[i]) {
-                dp[i+1][j] = 1 + dp[i][j];
-            }
-            for(int k=i+2;k<=n;k++) {
-                if(c[k]<c[i]) continue;
-                dp[k][j+1] = 1 + dp[i][j];
-            }
+    for(int i=0;i<=n+1;i++) for(int j=0;j<=n+1;j++) dp[i][j] = inf;
+    dp[0][0] = 0;
+
+    ft.resize(n+2);
+    for(int i=0;i<=n+1;i++) ft[i].init(n);
+    ft[0].update(0, 0);
+
+    for(int i=1;i<=n+1;i++) {
+        for(int j=0;j<=n+1;j++) {
+            if(c[i-1]<c[i]) minimize(dp[i][j], dp[i-1][j]);
+            if(j>0) minimize(dp[i][j], ft[j-1].query(c[i]-1) + i-1);
+            if(dp[i][j]!=inf) ft[j].update(c[i], dp[i][j] - i);
         }
     }
 
-    debug(dp[1][0], dp[2][0], dp[3][0], dp[4][0], dp[5][0]);
-
+    int ans = inf;
 
 
     for(int k=1;k<=n;k++) {
-        int ans = dp[n][k];
-        for(int i=n-1;i>0;i--) ans = max(ans, dp[i][k-1]);
-        cout << (n-ans) << " ";
+        ans = min(ans, dp[n+1][k]);
+        cout << ans << " ";
     }
     cout << "\n";
-
 
 }
  
@@ -93,7 +126,6 @@ signed main() {
     return 0;
 }
 /* stuff you should look for
-* logic OVER intuition
 * int overflow, array bounds
 * special cases (n=1?)
 * do smth instead of nothing and stay organized
